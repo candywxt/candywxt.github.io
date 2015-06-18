@@ -4,8 +4,16 @@ title: About
 permalink: /about/
 ---
 
-This is the base Jekyll theme. You can find out more info about customizing your Jekyll theme, as well as basic Jekyll usage documentation at [jekyllrb.com](http://jekyllrb.com/)
+> 喜欢笑，喜欢卖萌，喜欢努力的人。
+ 
+ 我的简历 →[https://guides.github.com/features/mastering-markdown/](https://guides.github.com/features/mastering-markdown/)
 
-You can find the source code for the Jekyll new theme at: [github.com/jglovier/jekyll-new](https://github.com/jglovier/jekyll-new)
-
-You can find the source code for Jekyll at [github.com/jekyll/jekyll](https://github.com/jekyll/jekyll)
+ 我的微博→[http://weibo.com/00wxt](http://weibo.com/00wxt)
+ 
+ 我的知乎→[http://www.zhihu.com/people/wang-xin-tong-70](http://www.zhihu.com/people/wang-xin-tong-70)
+ 
+ 我的豆瓣→[http://www.douban.com/people/71924377/](http://www.douban.com/people/71924377/)
+ 
+ 我的声音→[http://www.tudou.com/home/_93408634](http://www.tudou.com/home/_93408634)
+ 
+> 反正嘛，我就是这么一个人，喜欢或者不喜欢，我就笑笑不说话~实在不行，给你卖个萌好不咯？~ 
