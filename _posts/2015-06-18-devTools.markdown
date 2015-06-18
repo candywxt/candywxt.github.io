@@ -1,0 +1,39 @@
+---
+layout: post
+title:  "神器！DevTools在线调试CSS"
+date:   2015-06-18 23:26:52
+categories: jekyll update
+---
+我们平时在写页面的时候是不是经常在IDE里面保存然后在刷新浏览器看效果？有时候一些很小的样式这样的反复改会非常的不方便。今天发现一个神器：利用chrome的devtools就可以调试html和CSS，并且能够同时保存在本地文件。
+快来看看吧！
+
+首先，我们通过webstrom预览页面的时候，会看的浏览器的sources面板下出现了这个
+![查看sources面板](/assets/06-18/step1.png)
+
+接着右键→add folder to workpace,将自己本地项目地址添加进去会看到sources面板中变成了这样
+![ADD folder to workpace](/assets/06-18/step6.png)
+
+这时我们会看到一个提示，点击允许
+![点击允许](/assets/06-18/step2.png)
+
+接着又看到一个提示，点击`more`
+![点击more](/assets/06-18/step3.png)
+
+这个提示的意思大概就是告诉你要创建一个map,这样你在DevTools里面的修改就会映射到本地硬盘上
+![点击establish the map now](/assets/06-18/step4.png)
+
+点击index.html
+![点击index.html](/assets/06-18/step5.png)
+
+这时我们所有工作已经完成，现在会发现sources面板中只剩一个folder了
+![只剩一个folder](/assets/06-18/step7.png)
+
+神奇的事情要发生了！我们在DevTools里面的修改会映射到本地中！
+
+修改前
+![修改前](/assets/06-18/step8.png)
+
+修改后
+![修改后](/assets/06-18/step9.png)
+
+是不是很神奇，快去试试吧！

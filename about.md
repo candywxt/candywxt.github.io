@@ -6,7 +6,7 @@ permalink: /about/
 
 > 喜欢笑，喜欢卖萌，喜欢努力的人。
  
- 我的简历 →[https://guides.github.com/features/mastering-markdown/](https://guides.github.com/features/mastering-markdown/)
+ 我的简历 →[http://candywxt.github.io/resume](http://candywxt.github.io/resume/#page1)
 
  我的微博→[http://weibo.com/00wxt](http://weibo.com/00wxt)
  
