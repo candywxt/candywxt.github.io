@@ -1,0 +1,608 @@
+---
+layout: post
+title:  "来聊一聊JS吧"
+date:   2015-06-20 19:58:30
+categories: jekyll update
+---
+吃完饭来聊一聊JS吧，JS判断数据类型的方法有：
+
+## 判断arr是否为一个数组，返回一个bool值
+判断一个变量的类型，我们通常用`typeof` variable 
+{% highlight javascript linenos%}
+typeof 12    // "number"
+typeof arr    // "undefined"
+typeof 'arr'    // "string"
+function fn() {};
+typeof fn    // "function"
+typeof true    // "boolean"
+typeof []    // "object"
+typeof {} // "object" 
+{% endhighlight %}
+但是Array属于object,所以并不能用typeof来判断一个数组，这时我们可以用variable `instanceof` data type
+{% highlight javascript linenos%}
+    var arr = [];
+    arr instanceof Array;    // true
+{% endhighlight %}
+还有一个判断任意数据类型的方法： `Object.prototype.toString.call(arg);`我们知道在javascript里面，数组是Object的一种，所以我们可以用Object对象原型toString方法，如果对象是数组，则该函数返回`[object Array]`，同样如果对象是Object则该函数返回`[object Object]`,因为Number,String,Boolean,Array,Function都继承自JavaScript内置的Object对象，而每一个变量都是与其类型相应的对象的一个实例。
+{% highlight javascript linenos %}
+Object.prototype.toString.call({});     //    "[object Object]"
+Object.prototype.toString.call([]);     //    "[object Array]"
+Object.prototype.toString.call(1);      //    "[object Number]"
+Object.prototype.toString.call(fn);     //    "[object Function]"
+Object.prototype.toString.call(true);   //    "[object Boolean]"
+Object.prototype.toString.call(null);   //    "[object Null]"
+{% endhighlight %}
+
+## 深度克隆对象
+> 
+* 对一个object进行深度拷贝
+* 使用递归来实现一个深度克隆，可以复制一个目标对象，返回一个完整拷贝
+* 被复制的对象类型会被限制为数字、字符串、布尔、日期、数组、Object对象。不会包含函数、正则对象等
+
+* 对于object和Array的遍历，可以使用for in ，这样可以保证在Array对象上扩展的属性也可以正确的复制。
+* 对于Date,String,Boolean等引用类型的数据，需要考虑调用构造函数重新构造，直接复制依然会有引用的问题（不是真正的clone引用变量）
+* 使用getPrototypeOf有兼容问题。
+
+如果数据是原始类型：number，string，boolean则直接复制即可clone;
+
+如果数据是Array,则通过递归，继续调用cloneObject,参数换成数组的第一个元素，因为数组内可以是数组，对象，原始类型。
+将结果放在定义的result{}就可以实现对数组的clone;
+
+如果数据是对象字面量；
+
+> 插一句，什么是对象字面量：即判断这个对象是不是由{}或者new Object类似方式建立的；创建对象除了这两种方法外还有一个是Object.create();我们可以用它来实现原型链和继承；
+
+回来，我们先看看如何判断是否为对象字面量。
+只要是对象则一定会有isPrototypeOf 方法；
+{% highlight javascript linesons %}
+    function isPlain(obj){
+        var hasOwnProperty = Object.prototype.hasOwnProperty,
+            key;
+        if ( !obj ||
+             //一般的情况，直接用toString判断
+             Object.prototype.toString.call(obj) !== "[object Object]" ||
+             //IE下，window/document/document.body/HTMLElement/HTMLCollection/NodeList等DOM对象上一个语句为true
+             //isPrototypeOf挂在Object.prototype上的，因此所有的字面量都应该会有这个属性
+             //对于在window上挂了isPrototypeOf属性的情况，直接忽略不考虑
+             !('isPrototypeOf' in obj)
+           ) {
+            return false;
+        }
+    
+        //判断new fun()自定义对象的情况
+        //constructor不是继承自原型链的
+        //并且原型中有isPrototypeOf方法才是Object
+        if ( obj.constructor &&
+            !hasOwnProperty.call(obj, "constructor") &&
+            !hasOwnProperty.call(obj.constructor.prototype, "isPrototypeOf") ) {
+            return false;
+        }
+        //判断有继承的情况
+        //如果有一项是继承过来的，那么一定不是字面量Object
+        //OwnProperty会首先被遍历，为了加速遍历过程，直接看最后一项
+        for ( key in obj ) {}
+        return key === undefined || hasOwnProperty.call( obj, key );
+    }
+{% endhighlight %}
+
+这要对对象的特性很了解才能理解。第二段的通过new方法判断的我还不是很明白…还有有继承的这个，也不是很明白
+
+然后知道了是不是对象字面量，就可以继续clone我们的object了。
+{% highlight javascript linesons %}
+/**
+ * 对一个object进行深度拷贝
+ *
+ * 使用递归来实现一个深度克隆，可以复制一个目标对象，返回一个完整拷贝
+ * 被复制的对象类型会被限制为数字、字符串、布尔、日期、数组、Object对象。不会包含函数、正则对象等
+ *
+ * @param  {Object} source 需要进行拷贝的对象
+ * @return {Object} 拷贝后的新对象
+ */
+function cloneObject (source) {
+    var result = source, i, len;
+    if (!source
+        || source instanceof Number
+        || source instanceof String
+        || source instanceof Boolean) {
+        return result;
+    } else if (isArray(source)) {
+        result = [];
+        var resultLen = 0;
+        for (i = 0, len = source.length; i < len; i++) {
+            result[resultLen++] = cloneObject(source[i]);
+        }
+    } else if (isPlain(source)) {
+        result = {};
+        for (i in source) {
+            if (source.hasOwnProperty(i)) {
+                result[i] = cloneObject(source[i]);
+            }
+        }
+    }
+    return result;
+}
+// 测试用例：
+var srcObj = {
+    a: 1,
+    b: {
+        b1: ["hello", "hi"],
+        b2: "JavaScript"
+    }
+};
+var abObj = srcObj;
+var tarObj = cloneObject(srcObj);
+
+srcObj.a = 2;
+srcObj.b.b1[0] = "Hello";
+
+// console.log(abObj.a);    // 2
+// console.log(abObj.b.b1[0]);    // "Hello"
+
+// console.log(tarObj.a);      // 1
+// console.log(tarObj.b.b1[0]);    // "hello"
+{% endhighlight %}
+
+## 数组去重只考虑数组中元素为数字或字符串，返回一个去重后的数组
+
+1. 不要使用for in遍历数组，会遍历到数组对象扩展出来的属性，这部分数据不必要过滤。
+2. 如果只考虑数组内为字符串和数字的话，可以使用HashMap方式进行字典去重的，但需要考虑作为HashKey相同时（比如：’1’和1），要使用type区分处理。很多同学没有处理。
+3. 数组的indexOf方法不支持IE9以下，因此使用的同学在调用时，需要注意需要考虑先实现保证兼容。
+
+{% highlight javascript linesons %}
+function uniqArray(source) {
+    var len = source.length,
+        result = source.slice(0),
+        i, datum;
+
+
+    // 从后往前双重循环比较
+    // 如果两个元素相同，删除后一个
+    while (--len > 0) {
+        datum = result[len];
+        i = len;
+        while (i--) {
+            if (datum === result[i]) {
+                result.splice(len, 1);
+                break;
+            }
+        }
+    }
+
+    return result;
+}
+{% endhighlight %}
+
+1. slice()方法的运用：slice()方法把数组中的一部分见复制存入一个新的数组对象中，并返回这个新的数组；
+所以这时候result就是我们的source;
+接着从后往前双重循环遍历，遇到相同的删除后一个。
+
+## trim
+
+> 实现一个简单的trim函数，用于去除一个字符串，头部和尾部的空白字符
+> 假定空白字符只有半角空格、Tab
+> 练习通过循环，以及字符串的一些基本方法，分别扫描字符串str头部和尾部是否有连续的空白字符，并且删掉他们，最后返回一个完成去除的字符串
+
+str.charAt(index);返回字符串中指定位置的字符
+substring(indexA,indexB) ;返回字符串两个索引之间（或到字符串末尾）的子串。indexB可选；
+
+{% highlight javascript linesons %}
+function trim(str){
+    function isEmpty(c){
+        return /\s/.test(c);
+    };
+    for(var i = 0,l = str.length;i < l;i++){
+        if(!isEmpty(str.charAt(i))){
+            break;
+        }
+    }
+    if(i > j){
+        return '';
+    }
+    return str.substring(i,j);
+}
+ var str = ' h ';
+        str = trim(str);
+        console.log(str);
+
+{% endhighlight %}
+
+## 获取一个对象里面第一层元素的数量，返回一个整数
+
+最简单的方法就是用Object.keys(obj)方法；
+然而为了兼容，我们可以看一下这篇文章:[https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/keys](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/Object/keys)
+
+{% highlight javascript linesons %}
+    function getObjectLength(obj) {
+                 return Object.keys(obj).length
+            }
+{% endhighlight %}
+
+## 为DOM增加一个样式名为newClassName的新样式
+
+1. 注意setAttribute(‘class’, value)这种方式在IE6/7下有不兼容的问题。
+2. 添加newClassName时要先判断这个ClassName是不是存在；
+
+string.match();[https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String/match](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/String/match)
+
+如果正则表达式没有 g 标志，返回和 RegExp.exec(str) 相同的结果.
+
+{% highlight javascript linesons %}
+function addClass(element,newClassName){
+        var result;
+        var valid = typeof newClassName === 'string';
+        if(valid){
+            var classes = (newClassName || "").match(/\S+/g) || [];
+            var elemClasses = element.className;
+            var cur = element.nodeType === 1 && ( elemClasses ?
+                    (" "+ elemClasses + " ").replace(/[\t\r\n\f]/g," ") :
+                    " ");
+            if(cur){
+                var len = classes.length;
+                for(var i = 0; i < len;i++){
+                    if(cur.indexOf(" " + classes[i] + " ") < 0){
+                        cur += classes[i] + " ";
+                    }
+                }
+                result = trim(cur);
+                if(elemClasses !== result) {
+                    element.className = result;
+                }
+            }
+        }
+    }
+{% endhighlight %}
+
+## 获取dom相对于浏览器窗口的位置，返回一个对象{x,y}
+
+> HTMLElement.offsetLeft 是一个只读属性，返回当前元素左上角相对于 HTMLElement.offsetParent 节点的左边界偏移的像素值。(https://developer.mozilla.org/zh-CN/docs/Web/API/HTMLElement/offsetLeft）
+
+然而对于可换行元素例如<span> ,offsetTop 和 offsetLeft 描述的是第一个边界框的位置。使用[Element.getClientRects][Element.getClientRects]来获取其高度和宽度；
+而 offsetWidth 和 offsetHeight 描述的是边界框的维度（使用 [Element.getBoundingClientRect][Element.getBoundingClientRect] 来获取其位置）。因此，使用 offsetLeft、offsetTop、offsetWidth、offsetHeight 来对应 left、top、width 和 height 的一个盒子将不会是文本容器 span 的盒子边界。
+ 
+所以当我们想要获得关于窗口的左上角位置时，需要知道这个块级元素是否还有offsetParent这个节点；
+{% highlight javascript linesons %}
+function getPosition(element) {
+    var x = 0;
+    var y = 0;
+    var current = element;
+    var pre = null;
+
+    while (current !== null) {
+        x += current.offsetLeft;
+        y += current.offsetTop;
+        pre = current;
+        current = current.offsetParent;
+    }
+
+    return {x: x, y: y};
+}
+{% endhighlight %}
+ 
+## 判断是否为IE浏览器
+ 
+isIE大部分还是用navigation增值匹配得到的版本号。但是在IE8+中，可以选择不同版本的浏览区渲染模式，因此在这种情况下
+navigator 的信息就不准确了，所以需要使用documentMode来判断实际的渲染模式；
+
+在老的IE浏览器中，userAgent中会有msie m7.0等字样，所以我们要判断这个东西是否存在~
+{% highlight javascript linesons %}
+    function isIE() {
+        return /msie (\d+\.\d+)/i.test(navigator.userAgent)
+            ? (document.documentMode || + RegExp['\x241']) : undefined;
+    }
+{% endhighlight %}
+
+## cookie相关
+
+cookie Date需要转换成字符串，W3C标准中建议使用toUTCString代替toGMTString。 value要使用encodeURIComponent处理，W3C标准钟不建议使用escape方法。
+
+toUTCString:将时间显示为UTC格式的时间。sun,21,jun,2015 14:00:34 GMT
+getTime():方法返回一个时间的格林威治时间数值。
+
+{% highlight javascript linesons %}
+ function isValidCookieName(cookieName) {return (new RegExp('^[^\\x00-\\x20\\x7f\\(\\)<>@,;:\\\\\\\"\\[\\]\\?=\\{\\}\\/\\u0080-\\uffff]+\x24'))
+                                                .test(cookieName);
+                                        }                                        
+function setCookie(cookieName, cookieValue, expiredays) {
+     if (!isValidCookieName(cookieName)) {
+              return;
+            }
+        
+            var expires;
+            if (expiredays != null) {
+                expires = new Date();
+                expires.setTime(expires.getTime() + expiredays * 24 * 60 * 60 * 1000);
+            }
+        
+            document.cookie =
+                cookieName + '=' + encodeURIComponent(cookieValue)
+                + (expires ? '; expires=' + expires.toGMTString() : '');
+        }
+        
+        function getCookie(cookieName) {
+            if (isValidCookieName(cookieName)) {
+                var reg = new RegExp('(^| )' + cookieName + '=([^;]*)(;|\x24)');
+                var result = reg.exec(document.cookie);
+        
+                if (result) {
+                    return result[2] || null;
+                }
+            }
+        
+            return null;
+     }
+
+{% endhighlight %}
+## Ajax相关
+
+ajax 因为浏览器兼容问题，除了XMLHttpRequest外，还要使用ActiveXObject创建”Microsoft.XMLHTTP”，"Msxml2.XMLHTTP”（低版本IE）。 POST请求是需要setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8')
+[ajax gettingStart]
+
+## miniJquery
+
+实现一个minijQuery,第一步我们要实现他的选择器功能，先考虑简单的根据id获取，你会说根据id获取有什么好说的，直接一句话就可以了：`document.getElementById('id');`
+就可以了。是啊，是这句话，但是我们是实现miniJquery，所以还要考虑简单的继承，所以我们还是需要考虑一些事情的。
+比如：传进来的参数是id ? classname? tagname? 还是组合的后代选择器？
+我们还是以最简单的id开始，首先我们要识别id的标志`# 即写正则idReg = /\#([\w_\-]+)/`, 在这之前我们需要将传入的参数做一些处理`selector.split(/\s+/) 即以空格划分参数，这样再用刚刚的正则处理之后就可以得到id了。`
+![jq](/assets/06-21/minijq.png)
+![jq](/assets/06-21/minijq-2.png)
+ {% highlight javascript linesons %}
+ function $(selector){
+     var idReg = /^#([\w_\-]+)/;
+     var context = document;
+     function blank(){};
+ 
+     function direct(part,actions){
+         action = actions ||{
+             id:blank,
+             className:black,
+             tag:blank,
+             attribute:blank
+         };
+         var fn;
+         var params = [].slice.call(arguments,2);
+         //id
+         if(result = part.match(idReg)){
+             fn = 'id';
+             params.push(result[1]);
+         }
+         return actions[fn].apply(null,params);
+     }
+     function find(parts,comtext){
+         var part = parts.pop();
+         var actions = {
+             id:function(id){
+                 return [document.getElementById(id)];
+             }
+         }
+         var ret = direct(part,actions);
+         //to array
+         ret = [].slice.call(ret);
+         return parts[0] && ret[0] ? filterParents(parts,ret) : ret;
+     }
+     function filerParents(parts,ret){
+         var parentPart = parts.pop();
+         var result = [];
+ 
+         for(var i = 0, len = ret.length; i < len; i++) {
+             var node = ret[i];
+             var p = node;
+ 
+             while (p = p.parentNode) {
+                 var actions = {
+                     id: function (el, id) {
+                         return (el.id === id);
+                     }
+                 };
+                 var matches = direct(parentPart, actions, p);
+                 if (matches) {
+                     break;
+                 }
+             }
+             if (matches) {
+                 result.push(node);
+             }
+         }
+         return parts[0] && result[0] ? filerParents(parts,result) : result;
+     }
+     var result = find(selector.split(/\s+/),context);
+     return result;
+ }
+ {% endhighlight %}
+ 就比如说我如果调用一个$('#one')，会发生什么呢？
+ 首先看$函数，我传递了一个参数#one，return 了一个find函数并将（'#one',context）传递进去context是我们在$函数里定义的document，
+ 再看find函数，定义了很多东西我们先不管，看到他返回了一个`parts[0] && ret[0] ? filterParents(parts,ret) : ret;`那我们寻找parts[0]是否存在，看find函数第一行，parts.pop();由于我们的参数只有'#one'一个，所以pop之后parts就为空了，
+ 再来判断ret[0]是否为空，`ret = direct(part,actions)`;这里part就是我们从parts里pop出来的，actions是一个对象。我们现在看direct这个函数，同样定义了很多东西，先不管，先看return了什么，
+ `return actions[fn].apply(null,params)`;这里提到了[fn],我们看看这个fn是怎么来的，注意到这里有个if语句，
+ {% highlight javascript linesons %}
+ if(result = part.match(idReg)){
+       fn = 'id';
+       params.push(result[1]);
+   }
+ {% endhighlight %}
+ 
+ 首先他将"#one".match(idReg)的结果赋给result，发现匹配，则将fn定义为id,将result[1]push到params里面去。
+ 我们再来看下result的结果是什么：idReg = /^#([\w_\-]+)/;在正则表达式中，（）里面的内容是会被记录分组的，
+ ![jq](/assets/06-21/minijq-3.png),所以result[1]的结果就是one,所以direct函数返回的就是`actions['id'].apply(null,'one')`;
+ 那我们又要回去看actions['id']是什么了，
+  {% highlight javascript linesons %}
+   var actions = {
+              id:function(id){
+                  return [document.getElementById(id)];
+              }
+          }
+  {% endhighlight %}
+  所以这句话就是执行了document.getElementById('one');direct函数执行完了，退出视线，接着看find函数，我们刚刚说什么来着，说的是ret[0],是否存在，我们打印一下ret,
+  ![jq](/assets/06-21/minijq-4.png),那么ret是有且仅有一个元素的，所以ret[0]是存在的，不过我们已经判断了parts[0]是空的了，所以find函数返回ret,
+  也就是result的结果就是ret,所以$函数最后就是ret的结果！饶了这么半天终于把函数绕出来了~现在应该清楚了一些吧！
+  接下来我们依葫芦画瓢可以填补根据class,tag，attr……
+  {% highlight javascript linesons %}
+    /**
+     * mini $
+     *
+     * @param {string} selector 选择器
+     * @return {Array.<HTMLElement>} 返回匹配的元素列表
+     */
+    function $(selector) {
+        var idReg = /^#([\w_\-]+)/;
+        var classReg = /^\.([\w_\-]+)/;
+        var tagReg = /^\w+$/i;
+        // [data-log]
+        // [data-log="test"]
+        // [data-log=test]
+        // [data-log='test']
+        var attrReg = /(\w+)?\[([^=\]]+)(?:=(["'])?([^\]"']+)\3?)?\]/;
+    
+        // 不考虑'>' 、`~`等嵌套关系
+        // 父子选择器之间用空格相隔
+        var context = document;
+    
+        function blank() {}
+    
+        function direct(part, actions) {
+            actions = actions || {
+                id: blank,
+                className: blank,
+                tag: blank,
+                attribute: blank
+            };
+            var fn;
+            var params = [].slice.call(arguments, 2);
+            // id
+            if (result = part.match(idReg)) {
+                fn = 'id';
+                params.push(result[1]);
+            }
+            // class
+            else if (result = part.match(classReg)) {
+                fn = 'className';
+                params.push(result[1]);
+            }
+            // tag
+            else if (result = part.match(tagReg)) {
+                fn = 'tag';
+                params.push(result[0]);
+            }
+            // attribute
+            else if (result = part.match(attrReg)) {
+                fn = 'attribute';
+                var tag = result[1];
+                var key = result[2];
+                var value = result[4];
+                params.push(tag, key, value);
+            }
+            return actions[fn].apply(null, params);
+        }
+    
+        function find(parts, context) {
+            var part = parts.pop();
+    
+            var actions = {
+                id: function (id) {
+                    return [
+                        document.getElementById(id)
+                    ];
+                },
+                className: function (className) {
+                    var result = [];
+                    if (context.getElementsByClassName) {
+                        result = context.getElementsByClassName(className)
+                    }
+                    else {
+                        var temp = context.getElementsByTagName('*');
+                        for (var i = 0, len = temp.length; i < len; i++) {
+                            var node = temp[i];
+                            if (hasClass(node, className)) {
+                                result.push(node);
+                            }
+                        }
+                    }
+                    return result;
+                },
+                tag: function (tag) {
+                    return context.getElementsByTagName(tag);
+                },
+                attribute: function (tag, key, value) {
+                    var result = [];
+                    var temp = context.getElementsByTagName(tag || '*');
+    
+                    for (var i = 0, len = temp.length; i < len; i++) {
+                        var node = temp[i];
+                        if (value) {
+                            var v = node.getAttribute(key);
+                            (v === value) && result.push(node);
+                        }
+                        else if (node.hasAttribute(key)) {
+                            result.push(node);
+                        }
+                    }
+                    return result;
+                }
+            };
+    
+            var ret = direct(part, actions);
+    
+            // to array
+            ret = [].slice.call(ret);
+    
+            return parts[0] && ret[0] ? filterParents(parts, ret) : ret;
+        }
+    
+        function filterParents(parts, ret) {
+            var parentPart = parts.pop();
+            var result = [];
+    
+            for (var i = 0, len = ret.length; i < len; i++) {
+                var node = ret[i];
+                var p = node;
+    
+                while (p = p.parentNode) {
+                    var actions = {
+                        id: function (el, id) {
+                            return (el.id === id);
+                        },
+                        className: function (el, className) {
+                             return hasClass(el, className);
+                        },
+                        tag: function (el, tag) {
+                            return (el.tagName.toLowerCase() === tag);
+                        },
+                        attribute: function (el, tag, key, value) {
+                            var valid = true;
+                            if (tag) {
+                                valid = actions.tag(el, tag);
+                            }
+                            valid = valid && el.hasAttribute(key);
+                            if (value) {
+                                valid = valid && (value === el.getAttribute(key))
+                            }
+                            return valid;
+                        }
+                    };
+                    var matches = direct(parentPart, actions, p);
+    
+                    if (matches) {
+                        break;
+                    }
+                }
+    
+                if (matches) {
+                    result.push(node);
+                }
+            }
+    
+            return parts[0] && result[0] ? filterParents(parts, result) : result;
+        }
+    
+        var result = find(selector.split(/\s+/), context);
+    
+        return result;
+    }
+  {% endhighlight %}
+ 
+ JS核心部分到这里差不多结束了。还是蛮冗长的。。。
+ （多数是自己碎碎念，看不懂的欢迎指正，不过主要目的还是为了让自己更清晰一点……）
+ 
+ 
+ [Element.getClientRects]:  https://developer.mozilla.org/zh-CN/docs/Web/API/Element/getClientRects
+ [Element.getBoundingClientRect]:https://developer.mozilla.org/zh-CN/docs/Web/API/Element/getBoundingClientRect
+ [ajax gettingStart]: https://developer.mozilla.org/zh-CN/docs/AJAX/Getting_Started

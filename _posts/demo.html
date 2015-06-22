@@ -5,39 +5,90 @@
     <title></title>
     <style>
         .one{
-            margin: 10px;
-            background: #c00;
             width: 100px;
             height: 100px;
-            position: absolute;
+            background: #c00;
         }
         .two{
-            margin: 20px;
-            background: #0086B3;
-            width: 100px;
-            height: 200px;
-            padding: 20px;
-            position: absolute;
-            left: 100px;
+            border: 2px solid #0086B3;
         }
-        .hi{
-            padding: 10px;
+        .thr{
+            width: 200px;
         }
     </style>
-    <script src="2015-02-25-welcome-to-jekyll.markdown"></script>
+
 </head>
 <body>
-<div class="one">
-    width:100px;
-    height:100px;
-    margin:10px;
-    padding:0
+<div class="one" id="one">
 </div>
-<div class="two">
-    width:100px;
-    height:200px;
-    margin:20px;
-    padding:20px
-</div>
+<script>
+function $(selector){
+    var idReg = /^#([\w_\-]+)/;
+    var context = document;
+    function blank(){};
+
+    function direct(part,actions){
+        action = actions ||{
+            id:blank,
+            className:black,
+            tag:blank,
+            attribute:blank
+        };
+        var fn;
+        var params = [].slice.call(arguments,2);
+        //id
+        if(result = part.match(idReg)){
+            console.log(result)
+            fn = 'id';
+            params.push(result[1]);
+        }
+        return actions[fn].apply(null,params);
+    }
+    function find(parts,comtext){
+        var part = parts.pop();
+        var actions = {
+            id:function(id){
+                return [document.getElementById(id)];
+            }
+        }
+        var ret = direct(part,actions);
+        console.log(ret[0]);
+        //to array
+        ret = [].slice.call(ret);
+        console.log(ret);
+        return parts[0] && ret[0] ? filterParents(parts,ret) : ret;
+    }
+    function filerParents(parts,ret){
+        var parentPart = parts.pop();
+        var result = [];
+
+        for(var i = 0, len = ret.length; i < len; i++) {
+            var node = ret[i];
+            var p = node;
+
+            while (p = p.parentNode) {
+                var actions = {
+                    id: function (el, id) {
+                        return (el.id === id);
+                    }
+                };
+                var matches = direct(parentPart, actions, p);
+                if (matches) {
+                    break;
+                }
+            }
+            if (matches) {
+                result.push(node);
+            }
+        }
+        return parts[0] && result[0] ? filerParents(parts,result) : result;
+    }
+    var result = find(selector.split(/\s+/),context);
+    return result;
+}
+   var one = $('#one');
+    console.log('#one'.split(/\s+/))
+    console.log(one);
+</script>
 </body>
 </html>
