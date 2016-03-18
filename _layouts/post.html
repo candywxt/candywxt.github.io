@@ -18,8 +18,9 @@ layout: default
   /** CONFIGURATION VARIABLES **/
   var commentitUsername = 'candywxt';
   var commentitRepo = 'candywxt/candywxt.github.io';
-  var commentitPath = '{{ page.path }}';
-
+  var commentitId = '{{ page.id }}';
+  var commentitDatafile = _data.comments.yml;
+  var page.comments = site.data.comments[page.id];
   /** DON'T EDIT FOLLOWING LINES **/
   (function() {
       var commentit = document.createElement('script');
