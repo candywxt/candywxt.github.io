@@ -6,25 +6,19 @@ layout: default
 
   <h1 class="page-heading">多写代码才能多点提高~</h1>
 
-  <ul class="post-list">
+  <div>
     {% for post in site.posts %}
-      <li>
-        <span class="post-meta">{{ post.date | date: "%b %-d, %Y" }}</span>
-
-        <h2>
-          <a class="post-link" href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a>
-        </h2>
-      </li>
+      <section>
+        <div class="container">
+            <header class="major">
+                <h2><a href="{{ post.url | prepend: site.baseurl }}">{{ post.title }}</a></h2>
+                <span class="post-meta">{{ post.date | date: "%b %-d, %Y" }}</span>
+            </header>
+            <p>{{ post.desc }}</p>
+        </div>
+      </section>>
     {% endfor %}
-  </ul>
-    <ul>
-        {% for post in site.posts %}
-        <li>
-            <a href="{{ post.url }}">{{ post.title }}</a>
-            <p>{{ post.excerpt }}</p>
-        </li>
-        {% endfor %}
-    </ul>
+  </div>
   <p class="rss-subscribe">subscribe <a href="{{ "/feed.xml" | prepend: site.baseurl }}">via RSS</a></p>
 
 </div>

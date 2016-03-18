@@ -1,17 +1,28 @@
 ---
 layout: default
 ---
-<div class="post">
 
-  <header class="post-header">
-    <h1 class="post-title">{{ page.title }}</h1>
-    <p class="post-meta">{{ page.date | date: "%b %-d, %Y" }}{% if page.author %} • {{ page.author }}{% endif %}{% if page.meta %} • {{ page.meta }}{% endif %}</p>
-  </header>
+<section>
+    <div class="container">
+        <header class="major">
+            <h2>{{ page.title }}</h2>
+                <p class="post-meta">{{ page.date | date: "%b %-d, %Y" }}{% if page.author %} • {{ page.author }}{% endif %}{% if page.meta %} • {{ page.meta }}{% endif %}</p>
+        </header>
 
-  <article class="post-content">
-    {{ content }}
-  </article>
-</div>
+        <section class="post-content">
+            {{ content }}
+        </section>
+        
+        <footer>
+            {% if page.previous %}
+            <a href="{{ page.previous.url }}" class="float-left">&larr; Previous post</a> {% endif %}
+            {% if page.next %}
+            <a href="{{ page.next.url }}" class="float-right">Next post &rarr;</a> {% endif %}
+        </footer>
+
+    </div>
+
+</section>
 <noscript>Please enable JavaScript to view the comment form powered by <a href="https://commentit.io/">Comm(ent|it)</a></noscript>
 <div id="commentit"></div>
 <script type="text/javascript">
