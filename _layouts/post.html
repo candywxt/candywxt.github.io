@@ -19,7 +19,6 @@ layout: default
   var commentitUsername = 'candywxt';
   var commentitRepo = 'candywxt/candywxt.github.io';
   var commentitId = '{{ page.id }}';
-  var page.comments = '{{ site.data.comments[page.id] }}';
   var commentitDatafile = '{{ _data.comments.yml }}';
   /** DON'T EDIT FOLLOWING LINES **/
   (function() {
@@ -30,8 +29,8 @@ layout: default
       (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(commentit);
   })();
 </script>
-{%if page.comments %}
-  {% assign sorted_comments = (page.comments | sort: 'date') %}
+{%if site.data.comments[page.id] %}
+  {% assign sorted_comments = (site.data.comments[page.id] | sort: 'date') %}
 {% endif %}
 {% for c in sorted_comments %}
   <div class="media">
